@@ -123,6 +123,7 @@ class Ponvif {
 			if(@socket_recvfrom($sock, $response, 9999, MSG_DONTWAIT, $from, $this->discoverymcastport) !== FALSE && $response != $post_string){
 				$response = $this->_xml2array($response);
 				if(!$this->isFault($response)){
+					$response['Envelope']['Body']['ProbeMatches']['ProbeMatch']['IPAddr'] = $from;
 					$result[] = $response['Envelope']['Body']['ProbeMatches']['ProbeMatch'];
 				}
 			}
