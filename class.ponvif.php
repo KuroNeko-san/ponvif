@@ -100,10 +100,7 @@ class Ponvif {
 	*/
 	public function __construct()
 	{
-		// Fix missing constant for some PHP versions
-		if(!defined('MSG_DONTWAIT')){
-			define('MSG_DONTWAIT', 0x40);
-		}
+		// nothing to do
 	}
 
 	public function __destruct()
@@ -127,16 +124,9 @@ class Ponvif {
 			}
 			socket_set_option($sock, IPPROTO_IP, MCAST_JOIN_GROUP, array('group' => $this->discoverymcastip));
 			socket_sendto($sock, $post_string, strlen($post_string), 0, $this->discoverymcastip, $this->discoverymcastport);
-			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'){
-				// Windows
-				$flag = 0;
-				socket_set_nonblock($sock);
-			}else{
-				// Linux and others
-				$flag = MSG_DONTWAIT;
-			}
+			socket_set_nonblock($sock);
 			while(time() < $timeout){
-				if(FALSE !== @socket_recvfrom($sock, $response, 9999, $flag, $from, $this->discoverymcastport)){
+				if(FALSE !== @socket_recvfrom($sock, $response, 9999, 0, $from, $this->discoverymcastport)){
 					if($response != NULL && $response != $post_string){
 						$response = $this->_xml2array($response);
 						if(!$this->isFault($response)){
