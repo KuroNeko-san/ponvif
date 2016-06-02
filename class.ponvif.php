@@ -100,7 +100,10 @@ class Ponvif {
 	*/
 	public function __construct()
 	{
-		// nothing to do
+		// Fix missing constant for some PHP versions
+		if(!defined('MSG_DONTWAIT')){
+			define('MSG_DONTWAIT', 0x40);
+		}
 	}
 
 	public function __destruct()
@@ -115,20 +118,36 @@ class Ponvif {
 		$result = array();
 		$timeout = time() + $this->discoverytimeout;
 		$post_string = '<?xml version="1.0" encoding="UTF-8"?><e:Envelope xmlns:e="http://www.w3.org/2003/05/soap-envelope" xmlns:w="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:d="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:dn="http://www.onvif.org/ver10/network/wsdl"><e:Header><w:MessageID>uuid:84ede3de-7dec-11d0-c360-f01234567890</w:MessageID><w:To e:mustUnderstand="true">urn:schemas-xmlsoap-org:ws:2005:04:discovery</w:To><w:Action a:mustUnderstand="true">http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe</w:Action></e:Header><e:Body><d:Probe><d:Types>dn:NetworkVideoTransmitter</d:Types></d:Probe></e:Body></e:Envelope>';
-		$sock = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
-		socket_bind($sock, $this->discoverybindip, $this->discoverymcastport);
-		socket_set_option($sock, IPPROTO_IP, MCAST_JOIN_GROUP, array('group' => $this->discoverymcastip));
-		socket_sendto($sock, $post_string, strlen($post_string), 0, $this->discoverymcastip, $this->discoverymcastport);
-		while(time() < $timeout){
-			if(@socket_recvfrom($sock, $response, 9999, MSG_DONTWAIT, $from, $this->discoverymcastport) !== FALSE && $response != $post_string){
-				$response = $this->_xml2array($response);
-				if(!$this->isFault($response)){
-					$response['Envelope']['Body']['ProbeMatches']['ProbeMatch']['IPAddr'] = $from;
-					$result[] = $response['Envelope']['Body']['ProbeMatches']['ProbeMatch'];
+		try {
+			if(FALSE == ($sock = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP))){
+				echo('Create socket error: ['.socket_last_error().'] '.socket_strerror(socket_last_error()));
+			}
+			if(FALSE == @socket_bind($sock, $this->discoverybindip, rand(20000, 40000))){
+				echo('Bind socket error: ['.socket_last_error().'] '.socket_strerror(socket_last_error()));
+			}
+			socket_set_option($sock, IPPROTO_IP, MCAST_JOIN_GROUP, array('group' => $this->discoverymcastip));
+			socket_sendto($sock, $post_string, strlen($post_string), 0, $this->discoverymcastip, $this->discoverymcastport);
+			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'){
+				// Windows
+				$flag = 0;
+				socket_set_nonblock($sock);
+			}else{
+				// Linux and others
+				$flag = MSG_DONTWAIT;
+			}
+			while(time() < $timeout){
+				if(FALSE !== @socket_recvfrom($sock, $response, 9999, $flag, $from, $this->discoverymcastport)){
+					if($response != NULL && $response != $post_string){
+						$response = $this->_xml2array($response);
+						if(!$this->isFault($response)){
+							$response['Envelope']['Body']['ProbeMatches']['ProbeMatch']['IPAddr'] = $from;
+							$result[] = $response['Envelope']['Body']['ProbeMatches']['ProbeMatch'];
+						}
+					}
 				}
 			}
-		}
-		socket_close($sock);
+			socket_close($sock);
+		} catch (Exception $e) {}
 		return $result;
 	}
 
