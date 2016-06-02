@@ -21,6 +21,14 @@ $result = $onvif->discover();
 print_r($result);
 ```
 
+### Discovery options
+setDiscoveryTimeout(5) - timeout for device response; default "2"
+
+setDiscoveryBindIp('192.168.1.5') - choose ethernet card for discovery request; default "0.0.0.0"
+
+setDiscoveryHideDuplicates(false) - disable duplicate filtering (some devices may send more than one response); default "true"
+
+
 ### Get media streams
 
 ```
