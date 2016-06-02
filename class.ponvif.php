@@ -62,6 +62,7 @@ class Ponvif {
 	protected $discoverybindip='0.0.0.0';
 	protected $discoverymcastip='239.255.255.250';
 	protected $discoverymcastport=3702;
+	protected $discoveryhideduplicates=true;
 
 	/*
 		Properties wrappers
@@ -94,6 +95,7 @@ class Ponvif {
 	public function setDiscoveryBindIp($discoverybindip) { $this->discoverybindip = $discoverybindip; }
 	public function setDiscoveryMcastIp($discoverymcastip) { $this->discoverymcastip = $discoverymcastip; }
 	public function setDiscoveryMcastPort($discoverymcastport) { $this->discoverymcastport = $discoverymcastport; }
+	public function setDiscoveryHideDuplicates($discoveryhideduplicates) { $this->discoveryhideduplicates = $discoveryhideduplicates; }
 
 	/*
 		Constructor & Destructor
@@ -131,13 +133,18 @@ class Ponvif {
 						$response = $this->_xml2array($response);
 						if(!$this->isFault($response)){
 							$response['Envelope']['Body']['ProbeMatches']['ProbeMatch']['IPAddr'] = $from;
-							$result[] = $response['Envelope']['Body']['ProbeMatches']['ProbeMatch'];
+							if($this->discoveryhideduplicates){
+								$result[$from] = $response['Envelope']['Body']['ProbeMatches']['ProbeMatch'];
+							}else{
+								$result[] = $response['Envelope']['Body']['ProbeMatches']['ProbeMatch'];
+							}
 						}
 					}
 				}
 			}
 			socket_close($sock);
 		} catch (Exception $e) {}
+		sort($result);
 		return $result;
 	}
 
