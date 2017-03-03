@@ -6,11 +6,14 @@
  * @version 1.0
  * @desc A simple class to help you in developing an ONVIF compliant client
  
- * FIX by KuroNeko 26.04.2016
+ * FIX by KuroNeko 03.03.2017
  * getBaseUrl() - fixed "baseuri"
  * _getProfileData() - added "profilename" and fixed "profiletoken"
  * isFault() - added additional check for "Fault" scenario
  * discover() - added Onvif WS-Discovery implementation
+ * getDeviceUri() - fixed "deviceuri"
+ * setDeviceUri() - fixed "deviceuri"
+ * setMediaUri() - added MediaUri setter
  
 **/
 
@@ -38,6 +41,7 @@ class Ponvif {
 		$discoverytimeout WS-Discovery waiting time (sec)
 		$discoverymcastip WS-Discovery multicast ip address
 		$discoverymcastport WS-Discovery multicast port
+		$discoveryhideduplicates WS-Discovery flag to show\hide duplicates via source IP
 	*/
 	protected $ipaddress='';
 	protected $username='';
@@ -79,12 +83,13 @@ class Ponvif {
 	public function getUsername() { return $this->username; }
 	public function setPassword($password) { $this->password = $password; }
 	public function getPassword() { return $this->password; }
-	public function getDeviceUri() { return $this->mediauri; }
-	public function setDeviceUri($deviceUri) { $this->mediauri=$deviceUrl; }
+	public function getDeviceUri() { return $this->deviceuri; }
+	public function setDeviceUri($deviceuri) { $this->deviceuri = $deviceuri; }
 	public function getIPAddress($ipAddress) { return $this->ipAddress; }
-	public function setIPAddress($ipAddress) { $this->ipaddress=$ipAddress; }
+	public function setIPAddress($ipAddress) { $this->ipaddress = $ipAddress; }
 	public function getSources() { return $this->sources; }
 	public function getMediaUri() { return $this->mediauri; }
+	public function setMediaUri($mediauri) { $this->mediauri = $mediauri; }
 	public function getPTZUri() { return $this->ptzuri; }
 	public function getBaseUrl() { return $this->baseuri; }
 	public function getSupportedVersion() { return $this->onvifversion; }
@@ -152,7 +157,9 @@ class Ponvif {
 		Public functions (basic initialization method and other collaterals)
 	*/
 	public function initialize() {
-		$this->mediauri='http://'.$this->ipaddress.'/onvif/device_service';
+		if(!$this->mediauri){
+			$this->mediauri='http://'.$this->ipaddress.'/onvif/device_service';
+		}
 
 		try {
 			$datetime=$this->core_GetSystemDateAndTime();
