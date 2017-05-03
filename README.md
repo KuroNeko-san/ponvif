@@ -6,6 +6,29 @@ ONVIF PHP implementation
 
 This software module can control network video devices with ONVIF protocol (HTTP SOAP requests) and scan network for supported devices via UDP multicast.
 
+## Install
+
+add package to require 
+
+```json
+"require": {
+    "kuroneko-san/php-onvif": "dev-master"
+}
+```
+
+and package url to repositories section. see about repositories section https://getcomposer.org/doc/05-repositories.md#vcs
+
+```json
+"repositories": [
+    {
+        "type": "vcs",
+	"url": "https://github.com/KuroNeko-san/ponvif"
+    }
+],
+```
+
+
+
 ## Usage
 
 ### Discovery
