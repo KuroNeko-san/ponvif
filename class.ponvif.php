@@ -331,7 +331,7 @@ class Ponvif {
                 $REQ['TIMESTAMP'],
                 $profileToken),
             $post_string);
-        if ($this->isFault($response=$this->_send_request($this->snapshoturi,$post_string))) {
+        if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
             if ($this->intransingent) throw new Exception('GetSnapshotUri: Communication error');
             var_dump($response);
         }
