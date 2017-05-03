@@ -317,6 +317,28 @@ class Ponvif {
 			return $response['Envelope']['Body']['GetStreamUriResponse']['MediaUri']['Uri'];
 	}
 
+    public function media_GetSnapshotUri($profileToken) {
+        $REQ=$this->_makeToken();
+        $post_string='<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><UsernameToken><Username>%%USERNAME%%</Username><Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">%%PASSWORD%%</Password><Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">%%NONCE%%</Nonce><Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">%%CREATED%%</Created></UsernameToken></Security></s:Header><s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><GetSnapshotUri xmlns="http://www.onvif.org/ver10/media/wsdl"><ProfileToken>%%PROFILETOKEN%%</ProfileToken></GetSnapshotUri></s:Body></s:Envelope>';
+        $post_string=str_replace(array("%%USERNAME%%",
+            "%%PASSWORD%%",
+            "%%NONCE%%",
+            "%%CREATED%%",
+            "%%PROFILETOKEN%%"),
+            array($REQ['USERNAME'],
+                $REQ['PASSDIGEST'],
+                $REQ['NONCE'],
+                $REQ['TIMESTAMP'],
+                $profileToken),
+            $post_string);
+        if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
+            if ($this->intransingent) throw new Exception('GetSnapshotUri: Communication error');
+            var_dump($response);
+        }
+        else
+            return $response['Envelope']['Body']['GetSnapshotUriResponse']['MediaUri']['Uri'];
+    }
+
 	public function ptz_GetPresets($profileToken) {
 		if ($this->ptzuri=='') return array();
 	        $REQ=$this->_makeToken();

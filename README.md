@@ -93,6 +93,7 @@ and more ...
 - Get the available services
 - Get information of the device information
 - Get the URI of a stream
+- Get the URI to take a snapshot from camera
 - Get the available presets
 - Get information of a given node
 - Go to a given preset
