@@ -1,6 +1,6 @@
 <?php
 
-require 'class.ponvif.php';
+require './lib/class.ponvif.php';
 
 $onvif = new Ponvif();
 
