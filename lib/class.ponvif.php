@@ -15,6 +15,15 @@
  * setDeviceUri() - fixed "deviceuri"
  * setMediaUri() - added MediaUri setter
  
+ * Improved by Cycne 10.06.2017   ( Reference: https://www.onvif.org/ver10/media/wsdl/media.wsdl )
+ *    getCodecEncoders()
+ *    media_GetVideoEncoderConfigurations()
+ *    media_GetVideoEncoderConfigurationOptions()
+ *    media_SetVideoEncoderConfiguration()
+ *    media_GetOSDs()
+ *    media_DeleteOSD()
+ *    
+ 
 **/
 
 class Ponvif {
@@ -90,6 +99,7 @@ class Ponvif {
 	public function getSources() { return $this->sources; }
 	public function getMediaUri() { return $this->mediauri; }
 	public function setMediaUri($mediauri) { $this->mediauri = $mediauri; }
+	public function getCodecEncoders($codec) { return $this->_getCodecEncoders($codec); }
 	public function getPTZUri() { return $this->ptzuri; }
 	public function getBaseUrl() { return $this->baseuri; }
 	public function getSupportedVersion() { return $this->onvifversion; }
@@ -317,28 +327,207 @@ class Ponvif {
 			return $response['Envelope']['Body']['GetStreamUriResponse']['MediaUri']['Uri'];
 	}
 
-    public function media_GetSnapshotUri($profileToken) {
-        $REQ=$this->_makeToken();
-        $post_string='<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><UsernameToken><Username>%%USERNAME%%</Username><Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">%%PASSWORD%%</Password><Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">%%NONCE%%</Nonce><Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">%%CREATED%%</Created></UsernameToken></Security></s:Header><s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><GetSnapshotUri xmlns="http://www.onvif.org/ver10/media/wsdl"><ProfileToken>%%PROFILETOKEN%%</ProfileToken></GetSnapshotUri></s:Body></s:Envelope>';
-        $post_string=str_replace(array("%%USERNAME%%",
-            "%%PASSWORD%%",
-            "%%NONCE%%",
-            "%%CREATED%%",
-            "%%PROFILETOKEN%%"),
-            array($REQ['USERNAME'],
-                $REQ['PASSDIGEST'],
-                $REQ['NONCE'],
-                $REQ['TIMESTAMP'],
-                $profileToken),
-            $post_string);
-        if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
-            if ($this->intransingent) throw new Exception('GetSnapshotUri: Communication error');
-            var_dump($response);
-        }
-        else
-            return $response['Envelope']['Body']['GetSnapshotUriResponse']['MediaUri']['Uri'];
-    }
-
+	public function media_GetSnapshotUri($profileToken) {
+		$REQ=$this->_makeToken();
+		$post_string='<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><UsernameToken><Username>%%USERNAME%%</Username><Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">%%PASSWORD%%</Password><Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">%%NONCE%%</Nonce><Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">%%CREATED%%</Created></UsernameToken></Security></s:Header><s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><GetSnapshotUri xmlns="http://www.onvif.org/ver10/media/wsdl"><ProfileToken>%%PROFILETOKEN%%</ProfileToken></GetSnapshotUri></s:Body></s:Envelope>';
+		$post_string=str_replace(array("%%USERNAME%%",
+		"%%PASSWORD%%",
+		"%%NONCE%%",
+		"%%CREATED%%",
+		"%%PROFILETOKEN%%"),
+		array($REQ['USERNAME'],
+			$REQ['PASSDIGEST'],
+			$REQ['NONCE'],
+			$REQ['TIMESTAMP'],
+			$profileToken),
+		$post_string);
+		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
+		if ($this->intransingent) throw new Exception('GetSnapshotUri: Communication error');
+			var_dump($response);
+		}
+		else
+			return $response['Envelope']['Body']['GetSnapshotUriResponse']['MediaUri']['Uri'];
+	}
+	
+	public function media_GetVideoEncoderConfigurations($filterToken = null) {
+		$REQ=$this->_makeToken();
+		$post_string='<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><UsernameToken><Username>%%USERNAME%%</Username><Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">%%PASSWORD%%</Password><Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">%%NONCE%%</Nonce><Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">%%CREATED%%</Created></UsernameToken></Security></s:Header><s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><GetVideoEncoderConfigurations xmlns="http://www.onvif.org/ver10/media/wsdl" /></s:Body></s:Envelope>';
+		$post_string=str_replace(array("%%USERNAME%%",
+			"%%PASSWORD%%",
+			"%%NONCE%%",
+			"%%CREATED%%"),
+			array($REQ['USERNAME'],
+				$REQ['PASSDIGEST'],
+				$REQ['NONCE'],
+				$REQ['TIMESTAMP']),
+			$post_string);
+		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
+			if ($this->intransingent) throw new Exception('GetVideoEncoderConfigurations: Communication error');
+			//var_dump($response);
+		} else {
+			if ( ! $filterToken ) {
+				$resp = $response['Envelope']['Body']['GetVideoEncoderConfigurationsResponse']['Configurations'];
+			} else {
+				foreach( $response['Envelope']['Body']['GetVideoEncoderConfigurationsResponse']['Configurations'] as $resp ) {
+					if ( $resp['@attributes']['token'] == $filterToken ) break;
+				}
+			}
+			
+			return $resp;
+		}
+	}
+	
+	public function media_GetVideoEncoderConfigurationOptions($profileToken) {
+		$REQ=$this->_makeToken();
+		$post_string='<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><UsernameToken><Username>%%USERNAME%%</Username><Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">%%PASSWORD%%</Password><Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">%%NONCE%%</Nonce><Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">%%CREATED%%</Created></UsernameToken></Security></s:Header><s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><GetVideoEncoderConfigurationOptions xmlns="http://www.onvif.org/ver10/media/wsdl"><ProfileToken>%%PROFILETOKEN%%</ProfileToken></GetVideoEncoderConfigurationOptions></s:Body></s:Envelope>';
+		$post_string=str_replace(array("%%USERNAME%%",
+			"%%PASSWORD%%",
+			"%%NONCE%%",
+			"%%CREATED%%",
+			"%%PROFILETOKEN%%"),
+			array($REQ['USERNAME'],
+				$REQ['PASSDIGEST'],
+				$REQ['NONCE'],
+				$REQ['TIMESTAMP'],
+				$profileToken),
+			$post_string);
+		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
+			if ($this->intransingent) throw new Exception('GetVideoEncoderConfigurationOptions: Communication error');
+			//var_dump($response);
+		}
+		else
+			return $response['Envelope']['Body']['GetVideoEncoderConfigurationOptionsResponse']['Options'];
+	}
+	
+	
+	public function media_SetVideoEncoderConfiguration($vec) {
+		$REQ = $this->_makeToken();
+			
+		$post_string = '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:c14n="http://www.w3.org/2001/10/xml-exc-c14n#" xmlns:chan="http://schemas.microsoft.com/ws/2005/02/duplex" xmlns:dom0="http://www.axis.com/2009/event" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:tds="http://www.onvif.org/ver10/device/wsdl" xmlns:ter="http://www.onvif.org/ver10/error" xmlns:tev="http://www.onvif.org/ver10/events/wsdl" xmlns:timg="http://www.onvif.org/ver20/imaging/wsdl" xmlns:tmd="http://www.onvif.org/ver10/deviceIO/wsdl" xmlns:tptz="http://www.onvif.org/ver20/ptz/wsdl" xmlns:trt="http://www.onvif.org/ver10/media/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:wsa5="http://www.w3.org/2005/08/addressing" xmlns:wsc="http://schemas.xmlsoap.org/ws/2005/02/sc" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:wsrfbf="http://docs.oasis-open.org/wsrf/bf-2" xmlns:wsrfr="http://docs.oasis-open.org/wsrf/r-2" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wstop="http://docs.oasis-open.org/wsn/t-1" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:xmime="http://tempuri.org/xmime.xsd" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+					<s:Header>
+						<wsse:Security s:mustUnderstand="true">
+							<wsse:UsernameToken>
+								<wsse:Username>%%USERNAME%%</wsse:Username>
+								<wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">%%PASSWORD%%</wsse:Password>
+								<wsse:Nonce>%%NONCE%%</wsse:Nonce>
+								<wsu:Created>%%CREATED%%</wsu:Created>
+							</wsse:UsernameToken>
+						</wsse:Security>
+					</s:Header>
+					%%BODY%%
+				</s:Envelope>';
+				
+				
+		$optConfig = "";
+		
+		if ( isset($vec['RateControl']) ) {
+			$optConfig .= "	<tt:RateControl>
+						<tt:FrameRateLimit>{$vec['RateControl']['FrameRateLimit']}</tt:FrameRateLimit>
+						<tt:EncodingInterval>{$vec['RateControl']['EncodingInterval']}</tt:EncodingInterval>
+						<tt:BitrateLimit>{$vec['RateControl']['BitrateLimit']}</tt:BitrateLimit>
+					</tt:RateControl>";
+		}
+		
+		if ( isset($vec['MPEG4']) ) {
+			$optConfig .= "	<tt:MPEG4>
+						<tt:GovLength>{$vec['MPEG4']['GovLength']}</tt:GovLength>
+						<tt:Mpeg4Profile>{$vec['MPEG4']['Mpeg4Profile']}</tt:H264Profile>
+					</tt:MPEG4>";
+		}
+		
+		if ( isset($vec['H264']) ) {
+			$optConfig .= "	<tt:H264>
+						<tt:GovLength>{$vec['H264']['GovLength']}</tt:GovLength>
+						<tt:H264Profile>{$vec['H264']['H264Profile']}</tt:H264Profile>
+					</tt:H264>";
+		}
+		
+		// FIXME: Create function array2xml with XML-Namespaces
+		$post_string_body = "	<s:Body>
+						<trt:SetVideoEncoderConfiguration>
+							<trt:Configuration xsi:type=\"tt:VideoEncoderConfiguration\" token=\"{$vec['@attributes']['token']}\">
+								<tt:Name>{$vec['Name']}</tt:Name>
+								<tt:UseCount>{$vec['UseCount']}</tt:UseCount>
+								<tt:Encoding>{$vec['Encoding']}</tt:Encoding>
+								<tt:Resolution>
+									<tt:Width>{$vec['Resolution']['Width']}</tt:Width>
+									<tt:Height>{$vec['Resolution']['Height']}</tt:Height>
+								</tt:Resolution>
+								<tt:Quality>{$vec['Quality']}</tt:Quality>
+								{$optConfig}
+								<tt:Multicast>
+									<tt:Address>
+										<tt:Type>{$vec['Multicast']['Address']['Type']}</tt:Type>
+										<tt:IPv4Address>{$vec['Multicast']['Address']['IPv4Address']}</tt:IPv4Address>
+									</tt:Address>
+									<tt:Port>{$vec['Multicast']['Port']}</tt:Port>
+									<tt:TTL>{$vec['Multicast']['TTL']}</tt:TTL>
+									<tt:AutoStart>{$vec['Multicast']['AutoStart']}</tt:AutoStart>
+								</tt:Multicast>
+								<tt:SessionTimeout>{$vec['SessionTimeout']}</tt:SessionTimeout>
+							</trt:Configuration>
+							<trt:ForcePersistence>true</trt:ForcePersistence>
+						</trt:SetVideoEncoderConfiguration>
+					</s:Body>";
+		
+		
+		$post_string=str_replace(array("%%USERNAME%%",
+					"%%PASSWORD%%",
+					"%%NONCE%%",
+					"%%CREATED%%",
+					"%%BODY%%"),
+					array($REQ['USERNAME'],
+						$REQ['PASSDIGEST'],
+						$REQ['NONCE'],
+						$REQ['TIMESTAMP'],
+						$post_string_body),
+					$post_string);	
+				
+				
+		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
+			if ($this->intransingent) throw new Exception('SetVideoEncoderConfiguration: Communication error');
+		}
+	}
+	
+	public function media_GetOSDs() {
+		$REQ=$this->_makeToken();
+		$post_string='<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><UsernameToken><Username>%%USERNAME%%</Username><Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">%%PASSWORD%%</Password><Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">%%NONCE%%</Nonce><Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">%%CREATED%%</Created></UsernameToken></Security></s:Header><s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><GetOSDs xmlns="http://www.onvif.org/ver10/media/wsdl"></GetOSDs></s:Body></s:Envelope>';
+		$post_string=str_replace(array("%%USERNAME%%",
+			"%%PASSWORD%%",
+			"%%NONCE%%",
+			"%%CREATED%%"),
+			array($REQ['USERNAME'],
+				$REQ['PASSDIGEST'],
+				$REQ['NONCE'],
+				$REQ['TIMESTAMP']),
+			$post_string);
+		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
+			if ($this->intransingent) throw new Exception('GetOSDs: Communication error');
+		}
+		else
+			return $response['Envelope']['Body']['GetOSDsResponse']['OSDs'];
+	}
+	
+	public function media_DeleteOSD($OSDToken) {
+		$REQ=$this->_makeToken();
+		$post_string='<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><UsernameToken><Username>%%USERNAME%%</Username><Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">%%PASSWORD%%</Password><Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">%%NONCE%%</Nonce><Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">%%CREATED%%</Created></UsernameToken></Security></s:Header><s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><DeleteOSD xmlns="http://www.onvif.org/ver10/media/wsdl"><OSDToken>%%OSDToken%%</OSDToken></DeleteOSD></s:Body></s:Envelope>';
+		$post_string=str_replace(array("%%USERNAME%%",
+			"%%PASSWORD%%",
+			"%%NONCE%%",
+			"%%CREATED%%",
+			"%%OSDToken%%"),
+			array($REQ['USERNAME'],
+				$REQ['PASSDIGEST'],
+				$REQ['NONCE'],
+				$REQ['TIMESTAMP'],
+				$OSDToken),
+			$post_string);
+		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
+			if ($this->intransingent) throw new Exception('DeleteOSD: Communication error');
+		}
+	}
+	
+	
 	public function ptz_GetPresets($profileToken) {
 		if ($this->ptzuri=='') return array();
 	        $REQ=$this->_makeToken();
@@ -643,24 +832,24 @@ class Ponvif {
 	}
 
 	protected function _getActiveSources($videoSources,$profiles) {
-	  $sources=array();
-
-	  if (isset($videoSources['@attributes'])) {
-		// NVT is a camera
-	        $sources[0]['sourcetoken']=$videoSources['@attributes']['token'];
-		$this->_getProfileData($sources,0,$profiles);
-	  }
-	  else {
-	       // NVT is an encoder
-	       for ($i=0;$i<count($videoSources);$i++) {
-		        if (strtolower($videoSources[$i]['@attributes']['SignalActive'])=='true') {
-	        	        $sources[$i]['sourcetoken']=$videoSources[$i]['@attributes']['token'];
-				$this->_getProfileData($sources,$i,$profiles);
-		       }
-	       } // for
-	  }
-
-	  return $sources;
+		$sources=array();
+		
+		if (isset($videoSources['@attributes'])) {
+			// NVT is a camera
+			$sources[0]['sourcetoken']=$videoSources['@attributes']['token'];
+			$this->_getProfileData($sources,0,$profiles);
+		}
+		else {
+			// NVT is an encoder
+			for ($i=0;$i<count($videoSources);$i++) {
+					if (strtolower($videoSources[$i]['@attributes']['SignalActive'])=='true') {
+						$sources[$i]['sourcetoken']=$videoSources[$i]['@attributes']['token'];
+						$this->_getProfileData($sources,$i,$profiles);
+				}
+			} // for
+		}
+		
+		return $sources;
 	}
 
 	protected function _getProfileData(&$sources,$i,$profiles) {
@@ -670,6 +859,7 @@ class Ponvif {
 				$sources[$i][$inprofile]['profilename']=$profiles[$y]['Name'];
 				$sources[$i][$inprofile]['profiletoken']=$profiles[$y]['@attributes']['token'];
 				if ( isset($profiles[$y]['VideoEncoderConfiguration'])) {
+					$sources[$i][$inprofile]['encodername']=$profiles[$y]['VideoEncoderConfiguration']['Name'];
 					$sources[$i][$inprofile]['encoding']=$profiles[$y]['VideoEncoderConfiguration']['Encoding'];
 					$sources[$i][$inprofile]['width']=$profiles[$y]['VideoEncoderConfiguration']['Resolution']['Width'];
 					$sources[$i][$inprofile]['height']=$profiles[$y]['VideoEncoderConfiguration']['Resolution']['Height'];
@@ -682,9 +872,33 @@ class Ponvif {
 				}
 				$inprofile++;
 			}
-	    }
+		}
 	}
-
+	
+	protected function _getCodecEncoders($codec) { // 'JPEG', 'MPEG4', 'H264' 
+		$encoders = Array();
+		foreach( $this->sources as $ncam => $sCam ) {
+			$encoders[$ncam] = Array();
+			foreach( $sCam as $sCamProfile ) {
+				if ( isset($sCamProfile['profiletoken']) ) {
+					$profileToken = $sCamProfile['profiletoken'];
+					$encoderName = $sCamProfile['encodername'];
+					$VideoEncoderConfiguration = $this->media_GetVideoEncoderConfigurationOptions($profileToken);
+					
+					if ( isset($VideoEncoderConfiguration[$codec]) ) {
+						$enc = Array();
+						$enc['Name'] = $encoderName;
+						$enc['profileToken'] = $profileToken;
+						$enc['QualityRange'] = $VideoEncoderConfiguration['QualityRange'];
+						$encoders[$ncam][] = array_merge($enc, $VideoEncoderConfiguration[$codec]);
+					}
+				}
+			}
+		}
+		
+		return $encoders;
+	}
+	
 	protected function _xml2array($response) {
 		$sxe = new SimpleXMLElement($response);
 		$dom_sxe = dom_import_simplexml($sxe);
