@@ -16,119 +16,119 @@ class Ponvif
     /**
      * @var string ip address of the NVT device
      */
-    protected $ipAddress='';
+    private $ipAddress='';
 
     /**
      * @var string NVT authentication username
      */
-    protected $username='';
+    private $username='';
 
     /**
      * @var string NVT authentication password
      */
-    protected $password='';
+    private $password='';
 
     /**
      * @var string media web service uri
      */
-    protected $mediaUri='';
+    private $mediaUri='';
 
     /**
      * @var string core web service uri
      */
-    protected $deviceUri='';
+    private $deviceUri='';
 
     /**
      * @var string ptz web service uri
      */
-    protected $ptzUri='';
+    private $ptzUri='';
 
     /**
      * @var string url of the NVT (without service specification)
      */
-    protected $baseUri='';
+    private $baseUri='';
 
     /**
      * @var array onvif version supported by the NVT
      */
-    protected $onvifVersion= [];
+    private $onvifVersion= [];
 
     /**
      * @var int time differential correction (used to synchronize NVC with NVT)
      */
-    protected $deltatime=0;
+    private $deltatime=0;
 
     /**
      * @var array response of GetCapabilities
      */
-    protected $capabilities= [];
+    private $capabilities= [];
 
     /**
      * @var array response of GetVideoSources
      */
-    protected $videosources= [];
+    private $videosources= [];
 
     /**
      * @var array containing tokens for further requests
      */
-    protected $sources= [];
+    private $sources= [];
 
     /**
      * @var array response of GetProfiles
      */
-    protected $profiles= [];
+    private $profiles= [];
 
     /**
      * @var string proxy ipAddress
      */
-    protected $proxyHost='';
+    private $proxyHost='';
 
     /**
      * @var string proxy portnumber
      */
-    protected $proxyPort='';
+    private $proxyPort='';
 
     /**
      * @var string proxy authentication username
      */
-    protected $proxyUsername='';
+    private $proxyUsername='';
 
     /**
      * @var string proxy authentication password
      */
-    protected $proxyPassword='';
+    private $proxyPassword='';
 
     /**
      * @var string last soap response
      */
-    protected $lastResponse='';
+    private $lastResponse='';
 
-    protected $breakOnError=true;
+    private $breakOnError=true;
 
     /**
      * @var int WS-Discovery waiting time (sec)
      */
-    protected $discoveryTimeout=2;
+    private $discoveryTimeout=2;
 
     /**
      * @var string dicovery ipAddress
      */
-    protected $discoveryBindIp='';
+    private $discoveryBindIp='';
 
     /**
      * @var string WS-Discovery multicast ip address
      */
-    protected $discoveryMulticastIp='';
+    private $discoveryMulticastIp='';
 
     /**
      * @var int WS-Discovery multicast port
      */
-    protected $discoveryMulticastPort=3702;
+    private $discoveryMulticastPort=3702;
 
     /**
      * @var bool WS-Discovery flag to show\hide duplicates via source IP
      */
-    protected $discoveryHideDuplicates=true;
+    private $discoveryHideDuplicates=true;
 
     public function setProxyHost($proxyHost)
     {
@@ -295,6 +295,7 @@ class Ponvif
         $result      = [];
         $timeout     = time() + $this->discoveryTimeout;
         $post_string = '<?xml version="1.0" encoding="UTF-8"?><e:Envelope xmlns:e="http://www.w3.org/2003/05/soap-envelope" xmlns:w="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:d="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:dn="http://www.onvif.org/ver10/network/wsdl"><e:Header><w:MessageID>uuid:84ede3de-7dec-11d0-c360-f01234567890</w:MessageID><w:To e:mustUnderstand="true">urn:schemas-xmlsoap-org:ws:2005:04:discovery</w:To><w:Action a:mustUnderstand="true">http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe</w:Action></e:Header><e:Body><d:Probe><d:Types>dn:NetworkVideoTransmitter</d:Types></d:Probe></e:Body></e:Envelope>';
+
         try {
             if (false == ($sock = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP))) {
                 echo('Create socket error: [' . socket_last_error() . '] ' . socket_strerror(socket_last_error()));
@@ -305,12 +306,14 @@ class Ponvif
             socket_set_option($sock, IPPROTO_IP, MCAST_JOIN_GROUP, ['group' => $this->discoveryMulticastIp]);
             socket_sendto($sock, $post_string, strlen($post_string), 0, $this->discoveryMulticastIp, $this->discoveryMulticastPort);
             socket_set_nonblock($sock);
+
             while (time() < $timeout) {
                 if (false !== @socket_recvfrom($sock, $response, 9999, 0, $from, $this->discoveryMulticastPort)) {
                     if ($response != null && $response != $post_string) {
                         $response = $this->_xml2array($response);
                         if (! $this->isFault($response)) {
                             $response['Envelope']['Body']['ProbeMatches']['ProbeMatch']['IPAddr'] = $from;
+
                             if ($this->discoveryHideDuplicates) {
                                 $result[$from] = $response['Envelope']['Body']['ProbeMatches']['ProbeMatch'];
                             } else {
@@ -322,6 +325,7 @@ class Ponvif
             }
             socket_close($sock);
         } catch (Exception $e) {
+            // nothing to catch
         }
         sort($result);
 
@@ -1240,7 +1244,7 @@ class Ponvif
      *
      * @return array
      */
-    protected function _makeToken()
+    private function _makeToken()
     {
         $timestamp=time() - $this->deltatime;
 
@@ -1252,7 +1256,7 @@ class Ponvif
      *
      * @return array
      */
-    protected function _getOnvifVersion($capabilities)
+    private function _getOnvifVersion($capabilities)
     {
         $version=[];
         if (isset($capabilities['Device']['System']['SupportedVersions']['Major'])) {
@@ -1290,7 +1294,7 @@ class Ponvif
      *
      * @return array
      */
-    protected function _getActiveSources($videoSources, $profiles)
+    private function _getActiveSources($videoSources, $profiles)
     {
         $sources=[];
 
@@ -1316,7 +1320,7 @@ class Ponvif
      * @param $i
      * @param $profiles
      */
-    protected function _getProfileData(&$sources, $i, $profiles)
+    private function _getProfileData(&$sources, $i, $profiles)
     {
         $inprofile=0;
         for ($y=0; $y < count($profiles); $y++) {
@@ -1345,7 +1349,7 @@ class Ponvif
      *
      * @return array
      */
-    protected function _getCodecEncoders($codec)
+    private function _getCodecEncoders($codec)
     { // 'JPEG', 'MPEG4', 'H264'
         $encoders = [];
         foreach ($this->sources as $ncam => $sCam) {
@@ -1375,7 +1379,7 @@ class Ponvif
      *
      * @return array|mixed
      */
-    protected function _xml2array($response)
+    private function _xml2array($response)
     {
         $sxe     = new SimpleXMLElement($response);
         $dom_sxe = dom_import_simplexml($sxe);
@@ -1404,7 +1408,7 @@ class Ponvif
      *
      * @return array
      */
-    protected function _passwordDigest($username, $password, $timestamp = 'default', $nonce = 'default')
+    private function _passwordDigest($username, $password, $timestamp = 'default', $nonce = 'default')
     {
         if ($timestamp == 'default') {
             $timestamp=date('Y-m-d\TH:i:s.000\Z');
@@ -1430,7 +1434,7 @@ class Ponvif
      *
      * @return array|mixed|string
      */
-    protected function _send_request($url, $post_string)
+    private function _send_request($url, $post_string)
     {
         $soap_do = curl_init();
         curl_setopt($soap_do, CURLOPT_URL, $url);
