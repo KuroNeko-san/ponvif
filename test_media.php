@@ -67,8 +67,5 @@ try
 }
 catch(Exception $e)
 {
-	echo "erro\n";
-// 	print_r($e);
+	echo sprintf('Error: %s', $e->getMessage());
 }
-
-?>
