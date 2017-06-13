@@ -113,12 +113,12 @@ class Ponvif
     /**
      * @var string dicovery ipAddress
      */
-    private $discoveryBindIp='';
+    private $discoveryBindIp='0.0.0.0';
 
     /**
      * @var string WS-Discovery multicast ip address
      */
-    private $discoveryMulticastIp='';
+    private $discoveryMulticastIp='239.255.255.250';
 
     /**
      * @var int WS-Discovery multicast port
