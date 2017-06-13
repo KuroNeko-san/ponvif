@@ -13,5 +13,17 @@
     "autoload": {
         "classmap": ["lib/class.ponvif.php"]
     },
-    "license": "MIT"
+    "license": "MIT",
+    "require-dev": {
+        "phpro/grumphp": "^0.11.6",
+        "friendsofphp/php-cs-fixer": "^2.3"
+    },
+    "require": {
+        "ocramius/proxy-manager": "^2.1"
+    },
+    "extra": {
+        "grumphp": {
+            "config-default-path": "./grumphp.yml"
+        }
+    }
 }
