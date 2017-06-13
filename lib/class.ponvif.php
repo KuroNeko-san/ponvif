@@ -129,9 +129,6 @@ class Ponvif {
      */
 	protected $discoveryhideduplicates=true;
 
-	/*
-		Properties wrappers
-	*/
 	public function setProxyHost($proxyHost) { $this->proxyhost = $proxyHost; }
 	public function getProxyHost() { return $this->proxyhost; }
 	public function setProxyPort($proxyPort) { $this->proxyport = $proxyPort; }
@@ -146,7 +143,7 @@ class Ponvif {
 	public function getPassword() { return $this->password; }
 	public function getDeviceUri() { return $this->deviceuri; }
 	public function setDeviceUri($deviceuri) { $this->deviceuri = $deviceuri; }
-	public function getIPAddress($ipAddress) { return $this->ipAddress; }
+	public function getIPAddress() { return $this->ipaddress; }
 	public function setIPAddress($ipAddress) { $this->ipaddress = $ipAddress; }
 	public function getSources() { return $this->sources; }
 	public function getMediaUri() { return $this->mediauri; }
