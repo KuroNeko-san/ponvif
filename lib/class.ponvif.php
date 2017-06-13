@@ -160,19 +160,6 @@ class Ponvif {
 	public function setDiscoveryMcastIp($discoverymcastip) { $this->discoverymcastip = $discoverymcastip; }
 	public function setDiscoveryMcastPort($discoverymcastport) { $this->discoverymcastport = $discoverymcastport; }
 	public function setDiscoveryHideDuplicates($discoveryhideduplicates) { $this->discoveryhideduplicates = $discoveryhideduplicates; }
-
-	/*
-		Constructor & Destructor
-	*/
-	public function __construct()
-	{
-		// nothing to do
-	}
-
-	public function __destruct()
-	{
-		// nothing to do
-	}
 	
 	/*
 		WS-Discovery
