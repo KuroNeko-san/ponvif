@@ -1,80 +1,132 @@
 <?php
 
 /**
-
+ * Class Ponvif
+ *
  * @author Lorenzo Toscano <lorenzo.toscano@gmail.com>
- * @version 1.0
- * @desc A simple class to help you in developing an ONVIF compliant client
- 
- * FIX by KuroNeko 03.03.2017
- * getBaseUrl() - fixed "baseuri"
- * _getProfileData() - added "profilename" and fixed "profiletoken"
- * isFault() - added additional check for "Fault" scenario
- * discover() - added Onvif WS-Discovery implementation
- * getDeviceUri() - fixed "deviceuri"
- * setDeviceUri() - fixed "deviceuri"
- * setMediaUri() - added MediaUri setter
- 
- * Improved by Cycne 10.06.2017   ( Reference: https://www.onvif.org/ver10/media/wsdl/media.wsdl )
- *    getCodecEncoders()
- *    media_GetVideoEncoderConfigurations()
- *    media_GetVideoEncoderConfigurationOptions()
- *    media_SetVideoEncoderConfiguration()
- *    media_GetOSDs()
- *    media_DeleteOSD()
- *    
- 
-**/
-
+ * @author KuroNeko
+ * @author Rickerd <rick@rickdegraaff.nl>
+ * @version 2.0
+ * @desc The Onvif client class
+ */
 class Ponvif {
 
-	/*
-		$ipaddress 	ip address of the NVT device
-		$username 	NVT authentication username
-		$password 	NVT authentication password
-		$mediauri	media web service uri
-		$deviceuri	core web service uri
-		$ptzuri		ptz web service uri
-		$baseuri	url of the NVT (without service specification)
-		$onvifversion	onvif version supported by the NVT
-		$deltatime	time differential correction (used to synchronize NVC with NVT)
-		$capabilites	response of GetCapabilities
-		$videosources	response of GetVideoSources
-		$sources	array cotaining tokens for further requests
-		$profiles	response of GetProfiles
-		$proxyhost	proxy
-		$proxyport	proxy port
-		$proxyusername	proxy authentication username
-		$proxypassword  proxy authentication password
-		$lastresponse	last soap response
-		$discoverytimeout WS-Discovery waiting time (sec)
-		$discoverymcastip WS-Discovery multicast ip address
-		$discoverymcastport WS-Discovery multicast port
-		$discoveryhideduplicates WS-Discovery flag to show\hide duplicates via source IP
-	*/
+    /**
+     * @var string ip address of the NVT device
+     */
 	protected $ipaddress='';
+
+    /**
+     * @var string NVT authentication username
+     */
 	protected $username='';
+
+    /**
+     * @var string NVT authentication password
+     */
 	protected $password='';
+
+    /**
+     * @var string media web service uri
+     */
 	protected $mediauri='';
+
+    /**
+     * @var string core web service uri
+     */
 	protected $deviceuri='';
+
+    /**
+     * @var string ptz web service uri
+     */
 	protected $ptzuri='';
+
+    /**
+     * @var string url of the NVT (without service specification)
+     */
 	protected $baseuri='';
-	protected $onvifversion=array();
+
+    /**
+     * @var array onvif version supported by the NVT
+     */
+	protected $onvifversion= [];
+
+    /**
+     * @var int time differential correction (used to synchronize NVC with NVT)
+     */
 	protected $deltatime=0;
-	protected $capabilities=array();
-	protected $videosources=array();
-	protected $sources=array();
-	protected $profiles=array();
+
+    /**
+     * @var array response of GetCapabilities
+     */
+	protected $capabilities= [];
+
+    /**
+     * @var array response of GetVideoSources
+     */
+	protected $videosources= [];
+
+    /**
+     * @var array containing tokens for further requests
+     */
+	protected $sources= [];
+
+    /**
+     * @var array response of GetProfiles
+     */
+	protected $profiles= [];
+
+    /**
+     * @var string proxy ipaddress
+     */
 	protected $proxyhost='';
+
+    /**
+     * @var string proxy portnumber
+     */
 	protected $proxyport='';
+
+    /**
+     * @var string proxy authentication username
+     */
 	protected $proxyusername='';
+
+    /**
+     * @var string proxy authentication password
+     */
 	protected $proxypassword='';
+
+    /**
+     * @var string last soap response
+     */
 	protected $lastresponse='';
-	protected $intransingent=true;
+	
+	
+	protected $breakOnError=true;
+
+    /**
+     * @var int WS-Discovery waiting time (sec)
+     */
 	protected $discoverytimeout=2;
-	protected $discoverybindip='0.0.0.0';
-	protected $discoverymcastip='239.255.255.250';
+
+    /**
+     * @var string dicovery ipaddress
+     */
+	protected $discoverybindip='';
+
+    /**
+     * @var string WS-Discovery multicast ip address
+     */
+	protected $discoverymcastip='';
+
+    /**
+     * @var int WS-Discovery multicast port
+     */
 	protected $discoverymcastport=3702;
+
+    /**
+     * @var bool WS-Discovery flag to show\hide duplicates via source IP
+     */
 	protected $discoveryhideduplicates=true;
 
 	/*
@@ -104,7 +156,7 @@ class Ponvif {
 	public function getBaseUrl() { return $this->baseuri; }
 	public function getSupportedVersion() { return $this->onvifversion; }
 	public function getCapabilities() { return $this->capabilities; }
-	public function setBreakOnError($intransingent) { $this->intransingent=$intransingent; }
+	public function setBreakOnError($breakOnError) { $this->breakOnError=$breakOnError; }
 	public function getLastResponse() { return $this->lastresponse; }
 	public function setDiscoveryTimeout($discoverytimeout) { $this->discoverytimeout = $discoverytimeout; }
 	public function setDiscoveryBindIp($discoverybindip) { $this->discoverybindip = $discoverybindip; }
@@ -203,7 +255,7 @@ class Ponvif {
 	public function core_GetSystemDateAndTime() {
 		$post_string='<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/></s:Body></s:Envelope>';
 		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
-			if ($this->intransingent) throw new Exception('GetSystemDateAndTime: Communication error');
+			if ($this->breakOnError) throw new Exception('GetSystemDateAndTime: Communication error');
 		}
 		else
 			return $response['Envelope']['Body']['GetSystemDateAndTimeResponse']['SystemDateAndTime']['UTCDateTime'];
@@ -222,7 +274,7 @@ class Ponvif {
                                $REQ['TIMESTAMP']),
                          $post_string);
 		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
-			if ($this->intransingent) throw new Exception('GetCapabilities: Communication error');
+			if ($this->breakOnError) throw new Exception('GetCapabilities: Communication error');
 		}
 		else
 			return $response['Envelope']['Body']['GetCapabilitiesResponse']['Capabilities'];
@@ -241,7 +293,7 @@ class Ponvif {
                                $REQ['TIMESTAMP']),
                          $post_string);
 		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
- 			if ($this->intransingent) throw new Exception('GetVideoSources: Communication error');
+ 			if ($this->breakOnError) throw new Exception('GetVideoSources: Communication error');
 		}
 		else
 			return $response['Envelope']['Body']['GetVideoSourcesResponse']['VideoSources'];
@@ -260,7 +312,7 @@ class Ponvif {
                                $REQ['TIMESTAMP']),
                          $post_string);
 		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
-			if ($this->intransingent) throw new Exception('GetProfiles: Communication error');
+			if ($this->breakOnError) throw new Exception('GetProfiles: Communication error');
 		}
 		else
 			return $response['Envelope']['Body']['GetProfilesResponse']['Profiles'];
@@ -279,7 +331,7 @@ class Ponvif {
                                $REQ['TIMESTAMP']),
                          $post_string);
 		if ($this->isFault($this->_send_request($this->mediauri,$post_string))) {
-			if ($this->intransingent) throw new Exception('GetServices: Communication error');
+			if ($this->breakOnError) throw new Exception('GetServices: Communication error');
 		}
 	}
 
@@ -296,7 +348,7 @@ class Ponvif {
                                $REQ['TIMESTAMP']),
                          $post_string);
 		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
-			if ($this->intransingent) throw new Exception('GetDeviceInformation: Communication error');
+			if ($this->breakOnError) throw new Exception('GetDeviceInformation: Communication error');
 		}
 		else
 			return $response['Envelope']['Body']['GetDeviceInformationResponse'];
@@ -321,7 +373,7 @@ class Ponvif {
 			       $protocol),
                          $post_string);
 		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
-			if ($this->intransingent) throw new Exception('GetStreamUri: Communication error');
+			if ($this->breakOnError) throw new Exception('GetStreamUri: Communication error');
 		}
 		else
 			return $response['Envelope']['Body']['GetStreamUriResponse']['MediaUri']['Uri'];
@@ -342,7 +394,7 @@ class Ponvif {
 			$profileToken),
 		$post_string);
 		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
-		if ($this->intransingent) throw new Exception('GetSnapshotUri: Communication error');
+		if ($this->breakOnError) throw new Exception('GetSnapshotUri: Communication error');
 			var_dump($response);
 		}
 		else
@@ -362,7 +414,7 @@ class Ponvif {
 				$REQ['TIMESTAMP']),
 			$post_string);
 		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
-			if ($this->intransingent) throw new Exception('GetVideoEncoderConfigurations: Communication error');
+			if ($this->breakOnError) throw new Exception('GetVideoEncoderConfigurations: Communication error');
 			//var_dump($response);
 		} else {
 			if ( ! $filterToken ) {
@@ -392,7 +444,7 @@ class Ponvif {
 				$profileToken),
 			$post_string);
 		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
-			if ($this->intransingent) throw new Exception('GetVideoEncoderConfigurationOptions: Communication error');
+			if ($this->breakOnError) throw new Exception('GetVideoEncoderConfigurationOptions: Communication error');
 			//var_dump($response);
 		}
 		else
@@ -485,7 +537,7 @@ class Ponvif {
 				
 				
 		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
-			if ($this->intransingent) throw new Exception('SetVideoEncoderConfiguration: Communication error');
+			if ($this->breakOnError) throw new Exception('SetVideoEncoderConfiguration: Communication error');
 		}
 	}
 	
@@ -502,7 +554,7 @@ class Ponvif {
 				$REQ['TIMESTAMP']),
 			$post_string);
 		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
-			if ($this->intransingent) throw new Exception('GetOSDs: Communication error');
+			if ($this->breakOnError) throw new Exception('GetOSDs: Communication error');
 		}
 		else
 			return $response['Envelope']['Body']['GetOSDsResponse']['OSDs'];
@@ -523,7 +575,7 @@ class Ponvif {
 				$OSDToken),
 			$post_string);
 		if ($this->isFault($response=$this->_send_request($this->mediauri,$post_string))) {
-			if ($this->intransingent) throw new Exception('DeleteOSD: Communication error');
+			if ($this->breakOnError) throw new Exception('DeleteOSD: Communication error');
 		}
 	}
 	
@@ -544,7 +596,7 @@ class Ponvif {
 			       $profileToken),
                          $post_string);
 		if ($this->isFault($response=$this->_send_request($this->ptzuri,$post_string))) {
-			if ($this->intransingent) throw new Exception('GetPresets: Communication error');
+			if ($this->breakOnError) throw new Exception('GetPresets: Communication error');
 		}
 		else {
 			$getpresetsresponse=$response['Envelope']['Body']['GetPresetsResponse']['Preset'];
@@ -574,7 +626,7 @@ class Ponvif {
 			       $ptzNodeToken),
                          $post_string);
 		if ($this->isFault($response=$this->_send_request($this->ptzuri,$post_string))) {
-			if ($this->intransingent) throw new Exception('GetNode: Communication error');
+			if ($this->breakOnError) throw new Exception('GetNode: Communication error');
 		}
 		else
 			return $response['Envelope']['Body']['GetNodeResponse'];
@@ -604,7 +656,7 @@ class Ponvif {
 			       $speed_zoom_x),
                          $post_string);
 		if ($this->isFault($this->_send_request($this->ptzuri,$post_string))) {
-			if ($this->intransingent) throw new Exception('GotoPreset: Communication error');
+			if ($this->breakOnError) throw new Exception('GotoPreset: Communication error');
 		}
 	}
 
@@ -626,7 +678,7 @@ class Ponvif {
 			       $presetToken),
                          $post_string);
 		if ($this->isFault($this->_send_request($this->ptzuri,$post_string))) {
-			if ($this->intransingent) throw new Exception('RemovePreset: Communication error');
+			if ($this->breakOnError) throw new Exception('RemovePreset: Communication error');
 		}
 	}
 
@@ -648,7 +700,7 @@ class Ponvif {
 			       $presetName),
                          $post_string);
  		if ($this->isFault($this->_send_request($this->ptzuri,$post_string))) {
-			if ($this->intransingent) throw new Exception('SetPreset: Communication error');
+			if ($this->breakOnError) throw new Exception('SetPreset: Communication error');
 		}
 	}
 
@@ -676,7 +728,7 @@ class Ponvif {
 			       $speed_pantilt_y),
                          $post_string);
  		if ($this->isFault($this->_send_request($this->ptzuri,$post_string))) {
-			if ($this->intransingent) throw new Exception('RelativeMove: Communication error');
+			if ($this->breakOnError) throw new Exception('RelativeMove: Communication error');
 		}
 	}
 
@@ -700,7 +752,7 @@ class Ponvif {
 			       $zoom),
                          $post_string);
                 if ($this->isFault($this->_send_request($this->ptzuri,$post_string))) {
-			if ($this->intransingent) throw new Exception('RelativeMoveZoom: Communication error');
+			if ($this->breakOnError) throw new Exception('RelativeMoveZoom: Communication error');
 		}
 	}
 
@@ -726,7 +778,7 @@ class Ponvif {
 			       $zoom),
                          $post_string);
 		if ($this->isFault($this->_send_request($this->ptzuri,$post_string))) {
-			if ($this->intransingent) throw new Exception('AbsoluteMove: Communication error');
+			if ($this->breakOnError) throw new Exception('AbsoluteMove: Communication error');
 		}
 	}
 
@@ -750,7 +802,7 @@ class Ponvif {
 			       $velocity_pantilt_y),
                          $post_string);
  		if ($this->isFault($this->_send_request($this->ptzuri,$post_string))) {
-			if ($this->intransingent) throw new Exception('ContinuousMove: Communication error');
+			if ($this->breakOnError) throw new Exception('ContinuousMove: Communication error');
 		}
 	}
 
@@ -772,7 +824,7 @@ class Ponvif {
 			       $zoom),
                          $post_string);
 		if ($this->isFault($this->_send_request($this->ptzuri,$post_string))) {
-			if ($this->intransingent) throw new Exception('ContinuousMoveZoom: Communication error');
+			if ($this->breakOnError) throw new Exception('ContinuousMoveZoom: Communication error');
 		}
 	}
 
@@ -796,7 +848,7 @@ class Ponvif {
 			       $zoom),
                          $post_string);
  		if ($this->isFault($this->_send_request($this->ptzuri,$post_string))) {
-			if ($this->intransingent) throw new Exception('Stop: Communication error');
+			if ($this->breakOnError) throw new Exception('Stop: Communication error');
 		}
 	}
 
