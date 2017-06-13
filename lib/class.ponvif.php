@@ -285,9 +285,11 @@ class Ponvif
         $this->discoveryhideduplicates = $discoveryhideduplicates;
     }
 
-    /*
-        WS-Discovery
-    */
+    /**
+     * WS-Discovery
+     *
+     * @return array
+     */
     public function discover()
     {
         $result      = [];
@@ -326,9 +328,9 @@ class Ponvif
         return $result;
     }
 
-    /*
-        Public functions (basic initialization method and other collaterals)
-    */
+    /**
+     * Public functions (basic initialization method and other collaterals)
+     */
     public function initialize()
     {
         if (! $this->mediauri) {
@@ -358,14 +360,25 @@ class Ponvif
         $this->sources     =$this->_getActiveSources($this->videosources, $this->profiles);
     }
 
+    /**
+     * Useful to check if response contains a fault
+     *
+     * @param $response
+     *
+     * @return bool
+     */
     public function isFault($response)
-    { // Useful to check if response contains a fault
+    {
         return array_key_exists('Fault', $response) || array_key_exists('Fault', $response['Envelope']['Body']);
     }
 
-    /*
-        Public wrappers for a subset of ONVIF primitives
-    */
+    /**
+     * Public wrappers for a subset of ONVIF primitives
+     *
+     * @throws Exception
+     *
+     * @return mixed
+     */
     public function core_GetSystemDateAndTime()
     {
         $post_string='<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/></s:Body></s:Envelope>';
@@ -378,6 +391,11 @@ class Ponvif
         }
     }
 
+    /**
+     * @throws Exception
+     *
+     * @return mixed
+     */
     public function core_GetCapabilities()
     {
         $REQ        =$this->_makeToken();
@@ -400,6 +418,11 @@ class Ponvif
         }
     }
 
+    /**
+     * @throws Exception
+     *
+     * @return mixed
+     */
     public function media_GetVideoSources()
     {
         $REQ        =$this->_makeToken();
@@ -422,6 +445,11 @@ class Ponvif
         }
     }
 
+    /**
+     * @throws Exception
+     *
+     * @return mixed
+     */
     public function media_GetProfiles()
     {
         $REQ        =$this->_makeToken();
@@ -444,6 +472,9 @@ class Ponvif
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function media_GetServices()
     {
         $REQ        =$this->_makeToken();
@@ -464,6 +495,11 @@ class Ponvif
         }
     }
 
+    /**
+     * @throws Exception
+     *
+     * @return mixed
+     */
     public function core_GetDeviceInformation()
     {
         $REQ        =$this->_makeToken();
@@ -486,6 +522,15 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $profileToken
+     * @param string $stream
+     * @param string $protocol
+     *
+     * @throws Exception
+     *
+     * @return mixed
+     */
     public function media_GetStreamUri($profileToken, $stream='RTP-Unicast', $protocol='RTSP')
     {
         $REQ        =$this->_makeToken();
@@ -514,6 +559,13 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $profileToken
+     *
+     * @throws Exception
+     *
+     * @return mixed
+     */
     public function media_GetSnapshotUri($profileToken)
     {
         $REQ        =$this->_makeToken();
@@ -539,6 +591,13 @@ class Ponvif
         }
     }
 
+    /**
+     * @param null $filterToken
+     *
+     * @throws Exception
+     *
+     * @return mixed
+     */
     public function media_GetVideoEncoderConfigurations($filterToken = null)
     {
         $REQ        =$this->_makeToken();
@@ -572,6 +631,13 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $profileToken
+     *
+     * @throws Exception
+     *
+     * @return mixed
+     */
     public function media_GetVideoEncoderConfigurationOptions($profileToken)
     {
         $REQ        =$this->_makeToken();
@@ -597,6 +663,11 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $vec
+     *
+     * @throws Exception
+     */
     public function media_SetVideoEncoderConfiguration($vec)
     {
         $REQ = $this->_makeToken();
@@ -686,6 +757,11 @@ class Ponvif
         }
     }
 
+    /**
+     * @throws Exception
+     *
+     * @return mixed
+     */
     public function media_GetOSDs()
     {
         $REQ        =$this->_makeToken();
@@ -708,6 +784,11 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $OSDToken
+     *
+     * @throws Exception
+     */
     public function media_DeleteOSD($OSDToken)
     {
         $REQ        =$this->_makeToken();
@@ -730,6 +811,13 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $profileToken
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
     public function ptz_GetPresets($profileToken)
     {
         if ($this->ptzuri == '') {
@@ -765,6 +853,13 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $ptzNodeToken
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
     public function ptz_GetNode($ptzNodeToken)
     {
         if ($this->ptzuri == '') {
@@ -792,6 +887,17 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $profileToken
+     * @param $presetToken
+     * @param $speed_pantilt_x
+     * @param $speed_pantilt_y
+     * @param $speed_zoom_x
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
     public function ptz_GotoPreset($profileToken, $presetToken, $speed_pantilt_x, $speed_pantilt_y, $speed_zoom_x)
     {
         if ($this->ptzuri == '') {
@@ -825,6 +931,14 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $profileToken
+     * @param $presetToken
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
     public function ptz_RemovePreset($profileToken, $presetToken)
     {
         if ($this->ptzuri == '') {
@@ -852,6 +966,14 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $profileToken
+     * @param $presetName
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
     public function ptz_SetPreset($profileToken, $presetName)
     {
         if ($this->ptzuri == '') {
@@ -879,6 +1001,17 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $profileToken
+     * @param $translation_pantilt_x
+     * @param $translation_pantilt_y
+     * @param $speed_pantilt_x
+     * @param $speed_pantilt_y
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
     public function ptz_RelativeMove($profileToken, $translation_pantilt_x, $translation_pantilt_y, $speed_pantilt_x, $speed_pantilt_y)
     {
         if ($this->ptzuri == '') {
@@ -912,6 +1045,15 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $profileToken
+     * @param $zoom
+     * @param $speedZoom
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
     public function ptz_RelativeMoveZoom($profileToken, $zoom, $speedZoom)
     {
         if ($this->ptzuri == '') {
@@ -941,6 +1083,16 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $profileToken
+     * @param $position_pantilt_x
+     * @param $position_pantilt_y
+     * @param $zoom
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
     public function ptz_AbsoluteMove($profileToken, $position_pantilt_x, $position_pantilt_y, $zoom)
     {
         if ($this->ptzuri == '') {
@@ -972,6 +1124,15 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $profileToken
+     * @param $velocity_pantilt_x
+     * @param $velocity_pantilt_y
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
     public function ptz_ContinuousMove($profileToken, $velocity_pantilt_x, $velocity_pantilt_y)
     {
         if ($this->ptzuri == '') {
@@ -1001,6 +1162,14 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $profileToken
+     * @param $zoom
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
     public function ptz_ContinuousMoveZoom($profileToken, $zoom)
     {
         if ($this->ptzuri == '') {
@@ -1028,6 +1197,15 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $profileToken
+     * @param $pantilt
+     * @param $zoom
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
     public function ptz_Stop($profileToken, $pantilt, $zoom)
     {
         if ($this->ptzuri == '') {
@@ -1057,9 +1235,11 @@ class Ponvif
         }
     }
 
-    /*
-        Internal functions
-    */
+    /**
+     * Internal functions
+     *
+     * @return array
+     */
     protected function _makeToken()
     {
         $timestamp=time() - $this->deltatime;
@@ -1067,6 +1247,11 @@ class Ponvif
         return $this->_passwordDigest($this->username, $this->password, date('Y-m-d\TH:i:s.000\Z', $timestamp));
     }
 
+    /**
+     * @param $capabilities
+     *
+     * @return array
+     */
     protected function _getOnvifVersion($capabilities)
     {
         $version=[];
@@ -1099,6 +1284,12 @@ class Ponvif
         return $version;
     }
 
+    /**
+     * @param $videoSources
+     * @param $profiles
+     *
+     * @return array
+     */
     protected function _getActiveSources($videoSources, $profiles)
     {
         $sources=[];
@@ -1120,6 +1311,11 @@ class Ponvif
         return $sources;
     }
 
+    /**
+     * @param $sources
+     * @param $i
+     * @param $profiles
+     */
     protected function _getProfileData(&$sources, $i, $profiles)
     {
         $inprofile=0;
@@ -1144,6 +1340,11 @@ class Ponvif
         }
     }
 
+    /**
+     * @param $codec
+     *
+     * @return array
+     */
     protected function _getCodecEncoders($codec)
     { // 'JPEG', 'MPEG4', 'H264'
         $encoders = [];
@@ -1169,6 +1370,11 @@ class Ponvif
         return $encoders;
     }
 
+    /**
+     * @param $response
+     *
+     * @return array|mixed
+     */
     protected function _xml2array($response)
     {
         $sxe     = new SimpleXMLElement($response);
@@ -1190,6 +1396,14 @@ class Ponvif
         return $data;
     }
 
+    /**
+     * @param $username
+     * @param $password
+     * @param string $timestamp
+     * @param string $nonce
+     *
+     * @return array
+     */
     protected function _passwordDigest($username, $password, $timestamp = 'default', $nonce = 'default')
     {
         if ($timestamp == 'default') {
@@ -1210,6 +1424,12 @@ class Ponvif
         return $REQ;
     }
 
+    /**
+     * @param $url
+     * @param $post_string
+     *
+     * @return array|mixed|string
+     */
     protected function _send_request($url, $post_string)
     {
         $soap_do = curl_init();
@@ -1239,4 +1459,4 @@ class Ponvif
 
         return $this->lastresponse;
     }
-} // end class
+}
