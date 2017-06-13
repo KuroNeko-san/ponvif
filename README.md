@@ -105,3 +105,11 @@ and more ...
 - Start a continuous move
 - Start a continuous move and zoom
 - Stop a move
+
+# Contributing on this project
+We use Grumphp and csfixer to handle a certain coding standard
+If you want the php class to be fixed run this command:
+
+``` $ vendor/friendsofphp/php-cs-fixer/php-cs-fixer fix lib/class.ponvif.php```
+
+On every commit your code is checked (but not fixed right away thats why you need to fix or let it get fixed)

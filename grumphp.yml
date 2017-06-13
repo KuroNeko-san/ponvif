@@ -1,0 +1,8 @@
+parameters:
+    git_dir: .
+    bin_dir: vendor/bin
+    tasks:
+        phpcsfixer2:
+            config: .php_cs
+            verbose: true
+            allow_risky: true
