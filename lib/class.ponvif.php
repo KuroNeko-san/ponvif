@@ -130,7 +130,6 @@ class Ponvif {
 	*/
 	public function discover(){
 		$result = array();
-		$timeout = time() + $this->discoverytimeout;
 		$post_string = '<?xml version="1.0" encoding="UTF-8"?><e:Envelope xmlns:e="http://www.w3.org/2003/05/soap-envelope" xmlns:w="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:d="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:dn="http://www.onvif.org/ver10/network/wsdl"><e:Header><w:MessageID>uuid:84ede3de-7dec-11d0-c360-f01234567890</w:MessageID><w:To e:mustUnderstand="true">urn:schemas-xmlsoap-org:ws:2005:04:discovery</w:To><w:Action a:mustUnderstand="true">http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe</w:Action></e:Header><e:Body><d:Probe><d:Types>dn:NetworkVideoTransmitter</d:Types></d:Probe></e:Body></e:Envelope>';
 		try {
 			if(FALSE == ($sock = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP))){
@@ -146,7 +145,7 @@ class Ponvif {
 			$sock_write  = NULL;
 			$sock_except = NULL;
 
-			if ( socket_select( $sock_read, $sock_write, $sock_except, $this->discoverytimeout ) > 0 ) {
+			while ( socket_select( $sock_read, $sock_write, $sock_except, $this->discoverytimeout ) > 0 ) {
 				if(FALSE !== @socket_recvfrom($sock, $response, 9999, 0, $from, $this->discoverymcastport)){
 					if($response != NULL && $response != $post_string){
 						$response = $this->_xml2array($response);
